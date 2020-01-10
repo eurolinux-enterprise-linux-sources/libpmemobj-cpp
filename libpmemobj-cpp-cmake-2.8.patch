@@ -1,0 +1,47 @@
+diff -up libpmemobj-cpp-1.5/CMakeLists.txt.orig libpmemobj-cpp-1.5/CMakeLists.txt
+--- libpmemobj-cpp-1.5/CMakeLists.txt.orig	2018-10-26 11:55:27.000000000 -0400
++++ libpmemobj-cpp-1.5/CMakeLists.txt	2019-03-22 13:31:20.350185006 -0400
+@@ -29,7 +29,7 @@
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-cmake_minimum_required(VERSION 3.3)
++cmake_minimum_required(VERSION 2.8)
+ project(libpmemobj-cpp C CXX)
+ 
+ set(VERSION_MAJOR 1)
+diff -up libpmemobj-cpp-1.5/tests/ctest_helpers.cmake.orig libpmemobj-cpp-1.5/tests/ctest_helpers.cmake
+--- libpmemobj-cpp-1.5/tests/ctest_helpers.cmake.orig	2018-10-26 11:55:27.000000000 -0400
++++ libpmemobj-cpp-1.5/tests/ctest_helpers.cmake	2019-03-22 13:38:01.256246713 -0400
+@@ -151,10 +151,11 @@ function(add_testcase name tracer testca
+ 				FAIL_REGULAR_EXPRESSION "CMake Error")
+ 	endif()
+ 
++	list(FIND vg_tracers ${tracer} index)
+ 	if (${tracer} STREQUAL pmemcheck)
+ 		set_tests_properties(${name}_${testcase}_${tracer} PROPERTIES
+ 				COST 100)
+-	elseif(${tracer} IN_LIST vg_tracers)
++	elseif(${index} GREATER -1)
+ 		set_tests_properties(${name}_${testcase}_${tracer} PROPERTIES
+ 				COST 50)
+ 	else()
+@@ -176,7 +177,8 @@ function(add_test_common name tracer tes
+ 	    set(tracer none)
+ 	endif()
+ 
+-	if (NOT WIN32 AND (NOT VALGRIND_FOUND) AND ${tracer} IN_LIST vg_tracers)
++	list(FIND vg_tracers ${tracer} index)
++	if (NOT WIN32 AND (NOT VALGRIND_FOUND) AND (${index} GREATER -1))
+ 		skip_test(${name}_${testcase}_${tracer} "SKIPPED_BECAUSE_OF_MISSING_VALGRIND")
+ 		return()
+ 	endif()
+@@ -186,7 +188,7 @@ function(add_test_common name tracer tes
+ 		return()
+ 	endif()
+ 
+-	if (NOT WIN32 AND (USE_ASAN OR USE_UBSAN) AND ${tracer} IN_LIST vg_tracers)
++	if (NOT WIN32 AND (USE_ASAN OR USE_UBSAN) AND (${index} GREATER -1))
+ 		skip_test(${name}_${testcase}_${tracer} "SKIPPED_BECAUSE_SANITIZER_USED")
+ 		return()
+ 	endif()
